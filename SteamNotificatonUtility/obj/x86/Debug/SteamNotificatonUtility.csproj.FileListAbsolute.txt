@@ -1,0 +1,5 @@
+c:\users\biggs\documents\visual studio 2010\Projects\SteamNotificatonUtility\SteamNotificatonUtility\bin\Debug\SteamNotificatonUtility.exe
+c:\users\biggs\documents\visual studio 2010\Projects\SteamNotificatonUtility\SteamNotificatonUtility\bin\Debug\SteamNotificatonUtility.pdb
+c:\users\biggs\documents\visual studio 2010\Projects\SteamNotificatonUtility\SteamNotificatonUtility\obj\x86\Debug\ResolveAssemblyReference.cache
+c:\users\biggs\documents\visual studio 2010\Projects\SteamNotificatonUtility\SteamNotificatonUtility\obj\x86\Debug\SteamNotificatonUtility.exe
+c:\users\biggs\documents\visual studio 2010\Projects\SteamNotificatonUtility\SteamNotificatonUtility\obj\x86\Debug\SteamNotificatonUtility.pdb
