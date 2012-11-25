@@ -111,7 +111,7 @@ namespace SteamNotificatonUtility
                 {
                     if (fileLine.Contains(NotificationPanelPosition))
                     {
-                        temp = fileLine.Replace(PanelPositionRegex.Match(fileLine).ToString(), panelPosition.ToString());                        
+                        temp = PanelPositionRegex.Replace(fileLine, panelPosition.ToString(), 1);
                         newFile.AppendLine(temp);
 
                         if(this.Verbose == true)
