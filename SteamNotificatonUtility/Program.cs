@@ -35,11 +35,14 @@ namespace SteamNotificatonUtility
             styleChanger.PopulateStylesInfo();
             styleChanger.CreateBackup();
 
-            Console.WriteLine("Current notification panel location:");
-            Console.WriteLine(StylesInfo.ToString());
+            // KeyValuePair for main options
+            Dictionary<ConsoleKey, string> MainKeyOptions = new Dictionary<ConsoleKey, string>();
+            MainKeyOptions.Add(ConsoleKey.D1, "Font");
+            MainKeyOptions.Add(ConsoleKey.D2, "Panel Position");
+            MainKeyOptions.Add(ConsoleKey.D3, "Exit");
 
-            // Create a KeyValuePair for storing all possible and their corresponding action
-            Dictionary<ConsoleKey, PanelPosition> KeyOptions = new Dictionary<ConsoleKey, PanelPosition>();
+            // Create a KeyValuePair for storing all possible panel key options and their corresponding action
+            Dictionary<ConsoleKey, PanelPosition> PanelKeyOptions = new Dictionary<ConsoleKey, PanelPosition>();
 
             // Create a numbered list of all possible positions in PanelPosition            
             foreach (string enumName in Enum.GetNames(typeof(PanelPosition)))
@@ -47,31 +50,83 @@ namespace SteamNotificatonUtility
                 PanelPosition pp = (PanelPosition)Enum.Parse(typeof(PanelPosition), enumName);
                 // Get the console key that corresponds to the panel position enum integer value + 1
                 ConsoleKey key = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), "D" + ((int)pp + 1).ToString());
-                
-                KeyOptions.Add(key, pp);
+
+                PanelKeyOptions.Add(key, pp);
             }
 
-            // Write user input key options to the console
-            Console.WriteLine(System.Environment.NewLine + "Change notification panel location to:");
-            foreach (KeyValuePair<ConsoleKey, PanelPosition> pair in KeyOptions)
-                Console.WriteLine(pair.Key.ToString().Remove(0,1) + " " + pair.Value);
+            // Create a KeyValuePair for storing all possible panel key options and their corresponding action
+            Dictionary<ConsoleKey, FontSizeEnum> FontKeyOptions = new Dictionary<ConsoleKey, FontSizeEnum>();
+            int keyOption = 0;
+            foreach (string enumName in Enum.GetNames(typeof(FontSizeEnum)))
+            {
+                FontSizeEnum fs = (FontSizeEnum)Enum.Parse(typeof(FontSizeEnum), enumName);
+                // Get the console key that corresponds to the panel position enum integer value + 1
+                ConsoleKey key = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), "D" + ++keyOption);
 
-            ConsoleKey userInput = Console.ReadKey(true).Key;
+                FontKeyOptions.Add(key, fs);
+            }
 
-            // Change the notification panel position
-            if(KeyOptions.Keys.Contains<ConsoleKey>(userInput))
-                styleChanger.ChangePanelPosition(KeyOptions[userInput]);
 
-            Console.WriteLine();
-            Console.WriteLine("New notification panel location:");
-            Console.WriteLine(StylesInfo.ToString());
+            ConsoleKey userInput;
 
-            Console.WriteLine(System.Environment.NewLine + "I'm done. Esc to quit");
-            
-            // Wait for the user to quit
-            do {
-                while (!Console.KeyAvailable) { }
-            } while (Console.ReadKey(true).Key != ConsoleKey.Escape); 
+            do
+            {
+                Console.WriteLine("Panel Position: " + StylesInfo.ToString());
+                Console.WriteLine("Font size: " + (int)StylesInfo.Steam.FontSizes.First().Size + "\n");
+
+                // Write user input key options to the console
+                Console.WriteLine("Options:");
+                foreach (KeyValuePair<ConsoleKey, string> pair in MainKeyOptions)
+                    Console.WriteLine(pair.Key.ToString().Remove(0, 1) + " " + pair.Value);
+
+                userInput = Console.ReadKey(true).Key;
+
+                //  FONT
+                if (userInput == MainKeyOptions.Keys.Where(k => k == ConsoleKey.D1).First())
+                {
+                    Console.WriteLine(System.Environment.NewLine + "Change font size to:");
+
+                    // Put all values from FontSizeEnum into array
+                    Array values = Enum.GetValues(typeof(FontSizeEnum));
+
+                    foreach (KeyValuePair<ConsoleKey, FontSizeEnum> pair in FontKeyOptions)
+                        Console.WriteLine(pair.Key.ToString().Remove(0, 1) + " " + pair.Value.ToString().TrimStart('f'));
+
+                    Console.WriteLine();
+
+                    userInput = Console.ReadKey(true).Key;
+
+                    // Change the font
+                    if (FontKeyOptions.Keys.Contains<ConsoleKey>(userInput))
+                        styleChanger.ChangeFontSize(FontKeyOptions[userInput]);
+                }
+
+                // PANEL POSITION
+                else if (userInput == MainKeyOptions.Keys.Where(k => k == ConsoleKey.D2).First())
+                {
+                    Console.WriteLine(System.Environment.NewLine + "Change notification panel location to:");
+                    foreach (KeyValuePair<ConsoleKey, PanelPosition> pair in PanelKeyOptions)
+                        Console.WriteLine(pair.Key.ToString().Remove(0, 1) + " " + pair.Value);
+
+                    userInput = Console.ReadKey(true).Key;
+
+                    // Change the notification panel position
+                    if (PanelKeyOptions.Keys.Contains<ConsoleKey>(userInput))
+                        styleChanger.ChangePanelPosition(PanelKeyOptions[userInput]);
+
+                    Console.WriteLine();
+                }
+
+                // EXIT
+                else if (userInput == MainKeyOptions.Keys.Where(k => k == ConsoleKey.D3).First())
+                {
+                    Environment.Exit(1);
+                }
+            }
+            while (ConsoleKey.Escape != userInput);
+
+
+
         }
     }
 }

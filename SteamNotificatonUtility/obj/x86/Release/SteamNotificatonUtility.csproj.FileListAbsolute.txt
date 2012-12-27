@@ -3,3 +3,8 @@ C:\Users\biggs\documents\visual studio 2010\Projects\SteamNotificatonUtility\Ste
 C:\Users\biggs\documents\visual studio 2010\Projects\SteamNotificatonUtility\SteamNotificatonUtility\obj\x86\Release\ResolveAssemblyReference.cache
 C:\Users\biggs\documents\visual studio 2010\Projects\SteamNotificatonUtility\SteamNotificatonUtility\obj\x86\Release\SteamNotificatonUtility.exe
 C:\Users\biggs\documents\visual studio 2010\Projects\SteamNotificatonUtility\SteamNotificatonUtility\obj\x86\Release\SteamNotificatonUtility.pdb
+E:\git\steamnotificationutility\SteamNotificatonUtility\obj\x86\Release\SteamNotificatonUtility.pdb
+E:\git\steamnotificationutility\SteamNotificatonUtility\bin\Release\SteamNotificatonUtility.exe
+E:\git\steamnotificationutility\SteamNotificatonUtility\bin\Release\SteamNotificatonUtility.pdb
+E:\git\steamnotificationutility\SteamNotificatonUtility\obj\x86\Release\SteamNotificatonUtility.exe
+E:\git\steamnotificationutility\SteamNotificatonUtility\obj\x86\Release\SteamNotificatonUtility.csprojResolveAssemblyReference.cache

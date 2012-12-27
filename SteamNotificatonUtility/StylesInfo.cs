@@ -8,7 +8,24 @@ using System.IO;
 namespace SteamNotificatonUtility
 {
     public enum PanelPosition { BottomRight, BottomLeft, TopRight, TopLeft };
+    public enum FontSizeEnum { f12 = 12, f14 = 14, f16 = 16, f18 = 18, f20 = 20 };
 
+    public class FontSize
+    {
+        public FontSize(string name)
+        {
+            this.Name = name;
+        }
+
+        public string Name { get; set; }
+        public FontSizeEnum Size { get; set; }
+
+        public override string ToString()
+        {
+            return this.Name.ToString() + " " + (int)this.Size;
+        }
+    }
+    
     public class StylesChanger
     {
         public bool Verbose { get; set; }
@@ -33,6 +50,7 @@ namespace SteamNotificatonUtility
         public string SteamPath { get; set; }
 
         public Regex PanelPositionRegex { get; set; }
+        public Regex FontSizeRegex { get; set; }
 
         public IEnumerable<string> StyleFiles { get; set; }
         public IEnumerable<string> BackupFiles { get; set; }
@@ -54,10 +72,30 @@ namespace SteamNotificatonUtility
 
             this.NotificationPanelPosition = "Notifications.PanelPosition";
 
+            // Match a two digit number immediatly followng "font-size="
+            this.FontSizeRegex = new Regex(@"(?<=font-size=)\d+");
+                        
+            StylesInfo.Steam.FontSizes = new List<FontSize>(12);
+            
+            // These are all the areas in the steam styles file where a fontsize should be changed
+            StylesInfo.Steam.FontSizes.Add(new FontSize("console_text_error"));
+            StylesInfo.Steam.FontSizes.Add(new FontSize("console_text"));
+            StylesInfo.Steam.FontSizes.Add(new FontSize("friends_chat_text_self"));
+            StylesInfo.Steam.FontSizes.Add(new FontSize("friends_chat_text"));            
+            StylesInfo.Steam.FontSizes.Add(new FontSize("friends_chat_event"));
+            StylesInfo.Steam.FontSizes.Add(new FontSize("friends_chat_bright_event"));
+            StylesInfo.Steam.FontSizes.Add(new FontSize("friends_chat_url"));
+            StylesInfo.Steam.FontSizes.Add(new FontSize("friends_chat_name_ingame"));
+            StylesInfo.Steam.FontSizes.Add(new FontSize("friends_chat_self"));
+            StylesInfo.Steam.FontSizes.Add(new FontSize("friends_chat_name"));
+            StylesInfo.Steam.FontSizes.Add(new FontSize("friends_chat_accountid"));
+            StylesInfo.Steam.FontSizes.Add(new FontSize("friends_chat_securitylink"));
+                        
             this.SteamPath = path + @"\resource\styles";
 
             // Match a string between two quotes not including the quotes
-            // (?<=\")  -> Positive lookbehind (?<=expr) - requires that the match be preceded by a specific expression - an quote (") (escaped: \")
+            // (?<=\")  -> Positive lookbehind (?<=expr) - requires that the match be preceded by a specific 
+            //             expression - a quote (") (escaped: \")
             // [^\"]    -> Match any character that is not a single quote
             // *        -> Zero or more times
             this.PanelPositionRegex = new Regex("(?<=\")[^\"]*");
@@ -78,6 +116,7 @@ namespace SteamNotificatonUtility
                     var line = file.ReadLine();
                     while (line != null)
                     {
+                        // Panel Position is in this line, could be in Steam or Styles file
                         if (line.Contains(NotificationPanelPosition))
                         {
                             // Populate the StylesInfo class with the current panelPosition values
@@ -91,6 +130,18 @@ namespace SteamNotificatonUtility
                             else if (new FileInfo(f).Name.Contains(this.GameoverlayStylesFileName))
                                 StylesInfo.Gameoverlay.NotificationPanelPosition =
                                     (PanelPosition)Enum.Parse(typeof(PanelPosition), this.PanelPositionRegex.Match(line).ToString());
+                        } 
+                        // Using LINQ: If any of the FontSize names are contained in the line 
+                        else if (StylesInfo.Steam.FontSizes.Any(s=>line.Contains(s.Name)))
+                        {
+                            // The fontsize in question
+                            FontSize temp = StylesInfo.Steam.FontSizes.Where(s => line.Contains(s.Name)).First();
+
+                            // Read until we find the font size that isn't for OSX
+                            while (!this.FontSizeRegex.IsMatch(line) && !line.Contains(this.Osx))
+                                line = file.ReadLine();
+
+                            temp.Size = (FontSizeEnum)Enum.Parse(typeof(FontSizeEnum), this.FontSizeRegex.Match(line).ToString());
                         }
 
                         line = file.ReadLine();
@@ -99,7 +150,7 @@ namespace SteamNotificatonUtility
             }
         }
 
-        public void ChangePanelPosition(PanelPosition panelPosition)
+        internal void ChangePanelPosition(PanelPosition panelPosition)
         {
             foreach (string f in StyleFiles)
             {
@@ -116,6 +167,43 @@ namespace SteamNotificatonUtility
 
                         if(this.Verbose == true)
                             Console.WriteLine(temp.TrimStart());
+                    }
+                    else
+                    {
+                        newFile.AppendLine(fileLine);
+                    }
+                }
+
+                File.WriteAllText(f, newFile.ToString());
+            }
+
+            this.PopulateStylesInfo();
+
+            if (this.Verbose == true)
+                Console.WriteLine();
+        }
+
+        internal void ChangeFontSize(FontSizeEnum fontSizeEnum)
+        {
+            foreach (string f in StyleFiles)
+            {
+                StringBuilder newFile = new StringBuilder();
+                string temp = "";
+                string[] fileAsString = File.ReadAllLines(f);
+                bool searchingForFontSize = false;
+
+                foreach (string fileLine in fileAsString)
+                {
+                    if (searchingForFontSize && this.FontSizeRegex.IsMatch(fileLine) && !fileLine.Contains(this.Osx))
+                    {
+                        temp = FontSizeRegex.Replace(fileLine, ((int)fontSizeEnum).ToString(), 1);
+                        newFile.AppendLine(temp);
+                        searchingForFontSize = false;
+                    }
+                    else if (StylesInfo.Steam.FontSizes.Any(s => fileLine.Contains(s.Name)))
+                    {
+                        searchingForFontSize = true;
+                        newFile.AppendLine(fileLine);
                     }
                     else
                     {
@@ -157,6 +245,8 @@ namespace SteamNotificatonUtility
             if (this.Verbose)
                 Console.WriteLine();
         }
+
+
     }
 
     public static class StylesInfo
@@ -165,6 +255,8 @@ namespace SteamNotificatonUtility
         {
             public static PanelPosition NotificationPanelPosition { get; set; }
             public static PanelPosition NotificationPanelPositionOSX { get; set; }
+
+            public static List<FontSize> FontSizes { get; set; }
         }
 
         public static class Gameoverlay
@@ -172,11 +264,22 @@ namespace SteamNotificatonUtility
             public static PanelPosition NotificationPanelPosition { get; set; }
         }
 
+        public static string FontSizesToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (FontSize f in Steam.FontSizes)
+                sb.AppendLine(f.ToString());
+
+            return sb.ToString();
+        }
+
         public static new string ToString()
         {
-            return "steam.styles:\t\t" + Steam.NotificationPanelPosition.ToString() + "\n" +
-                    "steam.styles OSX:\t" + Steam.NotificationPanelPositionOSX.ToString() + "\n" +
-                    "gameoverlay.styles:\t" + Gameoverlay.NotificationPanelPosition.ToString() + "\n";
+            //return "steam.styles:\t\t" + Steam.NotificationPanelPosition.ToString() + "\n" +
+            //        "steam.styles OSX:\t" + Steam.NotificationPanelPositionOSX.ToString() + "\n" +
+            //        "gameoverlay.styles:\t" + Gameoverlay.NotificationPanelPosition.ToString() + "\n";                
+            return Steam.NotificationPanelPosition.ToString();
         }
     }
 }
